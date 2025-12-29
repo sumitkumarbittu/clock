@@ -13,7 +13,7 @@
   <meta property="og:title" content="Clock – A modern, minimal, mobile-first clock">
   <meta property="og:description" content="Designed for dashboards, analytics screens, and touch devices, with a strong focus on stability, readability, and user experience.">
   <meta property="og:image" content="https://sumitkumarbittu.github.io/clock.png">
-  <meta property="og:url" content="https://sumitkumarbittu.github.io/clock">
+  <meta property="og:url" content="https://sumitkumarbittu.github.io">
   <meta property="og:type" content="website">
 
   <!-- Twitter (optional but recommended) -->
@@ -24,6 +24,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#000000">
 
+  <link rel="apple-touch-icon" href="clock.png">
 
 <style>
   :root {
@@ -144,17 +145,6 @@
     letter-spacing: 0.15em;
   }
 
-  .pseudo-fullscreen {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: none !important;
-    border-radius: 0 !important;
-    z-index: 9999;
-  }
-
-
   /* INVISIBLE RESIZE ZONES */
   .resize-zone {
     position: absolute;
@@ -253,18 +243,60 @@ window.addEventListener("pointerup", () => resizing = null);
 
 /* -------- FULLSCREEN (DOUBLE TAP) -------- */
 let lastTap = 0;
-document.addEventListener("pointerdown", () => {
+
+widget.addEventListener("pointerdown", () => {
   const now = Date.now();
   if (now - lastTap < 300) {
-    document.fullscreenElement
-      ? document.exitFullscreen()
-      : document.documentElement.requestFullscreen?.();
+    if (document.fullscreenEnabled) {
+      document.fullscreenElement
+        ? document.exitFullscreen()
+        : widget.requestFullscreen();
+    }
   }
   lastTap = now;
 });
 
+
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
+  navigator.serviceWorker.register("sw.js").then(reg => {
+
+    // If a new SW is found
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+
+      newWorker.addEventListener("statechange", () => {
+        if (
+          newWorker.state === "installed" &&
+          navigator.serviceWorker.controller
+        ) {
+          // New version available
+          showUpdateToast();
+        }
+      });
+    });
+
+  });
+}
+
+// Simple update UI
+function showUpdateToast() {
+  const toast = document.createElement("div");
+  toast.textContent = "Update available — tap to refresh";
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 14px;
+    background: #000;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 14px;
+    z-index: 9999;
+    cursor: pointer;
+  `;
+  toast.onclick = () => location.reload();
+  document.body.appendChild(toast);
 }
 </script>
 
