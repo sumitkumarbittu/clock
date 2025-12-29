@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Clock</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Clock">
+
+  <!-- Open Graph / WhatsApp -->
+  <meta property="og:title" content="Clock – A modern, minimal, mobile-first clock">
+  <meta property="og:description" content="Designed for dashboards, analytics screens, and touch devices, with a strong focus on stability, readability, and user experience.">
+  <meta property="og:image" content="https://sumitkumarbittu.github.io/clock.png">
+  <meta property="og:url" content="https://sumitkumarbittu.github.io/clock">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter (optional but recommended) -->
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="clock.png" type="image/png">
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+
+
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #000000;
+    --card: #f3f3f3;
+    --border: #000000;
+  }
+
+  body.dark {
+    --bg: #000000;
+    --fg: #ffffff;
+    --card: #111111;
+    --border: #ffffff;
+  }
+
+  body {
+  padding:
+    env(safe-area-inset-top)
+    env(safe-area-inset-right)
+    env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+  * {
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* THEME TOGGLER */
+  .theme-toggle {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: grab;
+    user-select: none;
+    z-index: 3000;
+  }
+
+  /* CLOCK CONTAINER */
+  .clock-widget {
+    --scale: 1;
+
+    position: absolute;
+    top: 90px;
+    left: 20px;
+    width: min(520px, 94vw);
+    min-width: 300px;
+
+    padding: calc(18px * var(--scale));
+    border-radius: calc(18px * var(--scale));
+    border: 2px solid var(--border);
+    background: var(--bg);
+
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+
+  /* GRID — WRAPS ON MOBILE */
+  .clock-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: calc(14px * var(--scale));
+  }
+
+  @media (max-width: 520px) {
+    .clock-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* BOXES ADAPT TO CONTENT */
+  .time-box {
+    padding: calc(18px * var(--scale));
+    border-radius: calc(14px * var(--scale));
+    border: 1px solid var(--border);
+    background: var(--card);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 🔢 NUMBERS NEVER SHRINK */
+  .value {
+    font-size: max(2.6rem, calc(2.6rem * var(--scale)));
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .label {
+    margin-top: 6px;
+    font-size: max(0.65rem, calc(0.65rem * var(--scale)));
+    opacity: 0.65;
+    letter-spacing: 0.15em;
+  }
+
+  .pseudo-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    z-index: 9999;
+  }
+
+
+  /* INVISIBLE RESIZE ZONES */
+  .resize-zone {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    z-index: 10;
+  }
+
+  .tl { top: 0; left: 0; }
+  .tr { top: 0; right: 0; }
+  .bl { bottom: 0; left: 0; }
+  .br { bottom: 0; right: 0; }
+</style>
+</head>
+
+<body class="dark">
+
+<div class="theme-toggle" id="themeBtn">◐</div>
+
+<div class="clock-widget" id="widget">
+  <div class="resize-zone tl"></div>
+  <div class="resize-zone tr"></div>
+  <div class="resize-zone bl"></div>
+  <div class="resize-zone br"></div>
+
+  <div class="clock-grid">
+    <div class="time-box"><div class="value" id="hh">--</div><div class="label">HOURS</div></div>
+    <div class="time-box"><div class="value" id="mm">--</div><div class="label">MIN</div></div>
+    <div class="time-box"><div class="value" id="ss">--</div><div class="label">SEC</div></div>
+    <div class="time-box"><div class="value" id="ms">-</div><div class="label">ms</div></div>
+  </div>
+</div>
+
+<script>
+/* -------- CLOCK (NO LAYOUT EFFECT) -------- */
+setInterval(() => {
+  const d = new Date();
+  hh.textContent = String(d.getHours()).padStart(2, "0");
+  mm.textContent = String(d.getMinutes()).padStart(2, "0");
+  ss.textContent = String(d.getSeconds()).padStart(2, "0");
+  ms.textContent = Math.floor(d.getMilliseconds() / 100);
+}, 100);
+
+/* -------- THEME -------- */
+themeBtn.onclick = () => document.body.classList.toggle("dark");
+
+/* -------- DRAG -------- */
+function draggable(el) {
+  let ox = 0, oy = 0, drag = false;
+
+  el.addEventListener("pointerdown", e => {
+    drag = true;
+    el.setPointerCapture(e.pointerId);
+    ox = e.clientX - el.offsetLeft;
+    oy = e.clientY - el.offsetTop;
+  });
+
+  el.addEventListener("pointermove", e => {
+    if (!drag) return;
+    el.style.left = e.clientX - ox + "px";
+    el.style.top = e.clientY - oy + "px";
+  });
+
+  el.addEventListener("pointerup", () => drag = false);
+}
+
+draggable(widget);
+draggable(themeBtn);
+
+/* -------- RESIZE (STABLE SCALE) -------- */
+let resizing = null, startX, startW;
+
+document.querySelectorAll(".resize-zone").forEach(z => {
+  z.addEventListener("pointerdown", e => {
+    e.stopPropagation();
+    resizing = z.classList[1];
+    startX = e.clientX;
+    startW = widget.offsetWidth;
+  });
+});
+
+window.addEventListener("pointermove", e => {
+  if (!resizing) return;
+
+  const dx = e.clientX - startX;
+  const newW = Math.max(
+    300,
+    Math.min(window.innerWidth * 0.95, startW + (resizing.includes("l") ? -dx : dx))
+  );
+
+  widget.style.width = newW + "px";
+  widget.style.setProperty("--scale", newW / 520);
+});
+
+window.addEventListener("pointerup", () => resizing = null);
+
+/* -------- FULLSCREEN (DOUBLE TAP) -------- */
+let lastTap = 0;
+document.addEventListener("pointerdown", () => {
+  const now = Date.now();
+  if (now - lastTap < 300) {
+    document.fullscreenElement
+      ? document.exitFullscreen()
+      : document.documentElement.requestFullscreen?.();
+  }
+  lastTap = now;
+});
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+</body>
+</html>
