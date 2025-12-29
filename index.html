@@ -83,6 +83,11 @@
     z-index: 3000;
   }
 
+  .locked {
+  opacity: 0.7;
+}
+
+
   /* CLOCK CONTAINER */
   .clock-widget {
     --scale: 1;
@@ -163,6 +168,8 @@
 <body class="dark">
 
 <div class="theme-toggle" id="themeBtn">◐</div>
+<div class="theme-toggle" id="lockBtn" style="right: 68px;">🔓</div>
+
 
 <div class="clock-widget" id="widget">
   <div class="resize-zone tl"></div>
@@ -213,6 +220,7 @@ function draggable(el) {
 
 draggable(widget);
 draggable(themeBtn);
+draggable(lockBtn);
 
 /* -------- RESIZE (STABLE SCALE) -------- */
 let resizing = null, startX, startW;
@@ -300,6 +308,66 @@ function showUpdateToast() {
   toast.onclick = () => location.reload();
   document.body.appendChild(toast);
 }
+
+/* -------- LOCK MODE -------- */
+let isLocked = false;
+let wakeLock = null;
+
+/* Wake Lock helpers */
+async function enableWakeLock() {
+  try {
+    if ("wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => {
+        wakeLock = null;
+      });
+    }
+  } catch (err) {
+    // Fail silently (iOS / unsupported)
+  }
+}
+
+function disableWakeLock() {
+  if (wakeLock) {
+    wakeLock.release();
+    wakeLock = null;
+  }
+}
+
+/* Toggle lock */
+lockBtn.addEventListener("pointerdown", e => {
+  e.stopPropagation();
+
+  isLocked = !isLocked;
+
+  if (isLocked) {
+    lockBtn.textContent = "🔒";
+    enableWakeLock();
+
+    // Disable interactions
+    widget.style.pointerEvents = "none";
+    themeBtn.style.pointerEvents = "none";
+
+    // Keep lock movable
+    lockBtn.style.pointerEvents = "auto";
+    lockBtn.classList.add("locked");
+  } else {
+    lockBtn.textContent = "🔓";
+    disableWakeLock();
+
+    // Re-enable interactions
+    widget.style.pointerEvents = "auto";
+    themeBtn.style.pointerEvents = "auto";
+    lockBtn.classList.remove("locked");
+  }
+});
+
+/* Re-acquire wake lock if tab regains focus */
+document.addEventListener("visibilitychange", () => {
+  if (isLocked && document.visibilityState === "visible") {
+    enableWakeLock();
+  }
+});
 </script>
 
 </body>
