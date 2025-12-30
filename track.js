@@ -31,6 +31,8 @@
      SESSION START
      ------------------------------ */
   let analytics_session_started_at = new Date().toISOString();
+  let analytics_last_url = analytics_getCurrentUrl();
+
 
   /* ------------------------------
      VISIBILITY TRACKING
