@@ -86,25 +86,29 @@
      HEARTBEAT LOOP
      ------------------------------ */
   setInterval(() => {
+    const currentUrl = analytics_getCurrentUrl();
+
+    // 🔁 URL changed → new session
+    if (currentUrl !== analytics_last_url) {
+      analytics_session_started_at = new Date().toISOString();
+      analytics_last_url = currentUrl;
+    }
+
     const analytics_payload = {
       visitor_id: analytics_visitor_id,
       city: analytics_city,
-      url: analytics_getCurrentUrl(),
+      url: currentUrl,
       session_started_at: analytics_session_started_at
     };
 
     fetch(API_ENDPOINT, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(analytics_payload),
       keepalive: true
-    }).catch(() => {
-      /* silent failure */
-    });
-
+    }).catch(() => {});
   }, analytics_HEARTBEAT_INTERVAL);
+
 
   /* ------------------------------
      FINAL SEND ON PAGE EXIT
@@ -124,4 +128,3 @@
   });
 
 })();
-
