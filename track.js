@@ -4,7 +4,7 @@
   /* ------------------------------
      CONFIG
      ------------------------------ */
-  const analytics_SESSION_RESET_AFTER = 120_000; // 120 seconds
+  const analytics_SESSION_RESET_AFTER = 90_000; // 90 seconds
 
   const API_ENDPOINT = "https://webda.onrender.com/siteanalysis/enqueue"; // unchanged
   let analytics_HEARTBEAT_INTERVAL = 10_000; // 10 seconds
@@ -63,7 +63,7 @@
   /* ------------------------------
      SESSION START
      ------------------------------ */
-  const analytics_session_started_at = new Date().toISOString();
+  let analytics_session_started_at = new Date().toISOString();
 
   /* ------------------------------
      CURRENT URL
