@@ -9,7 +9,6 @@
   let analytics_HEARTBEAT_INTERVAL = 10_000; // 10 seconds
   let analytics_hidden_at = null;
 
-
   /* ------------------------------
      VISITOR ID (cached per browser)
      ------------------------------ */
