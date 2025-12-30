@@ -118,9 +118,9 @@
     };
 
     navigator.sendBeacon(
-    new Blob([JSON.stringify(analytics_payload)], {
-      type: "application/json"
-    })
+      API_ENDPOINT,
+      JSON.stringify(analytics_payload)
+    );
   });
 
 })();
