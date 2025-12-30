@@ -4,8 +4,44 @@
   /* ------------------------------
      CONFIG
      ------------------------------ */
+  const analytics_SESSION_RESET_AFTER = 120_000; // 120 seconds
+
   const API_ENDPOINT = "https://webda.onrender.com/siteanalysis/enqueue"; // unchanged
-  const analytics_HEARTBEAT_INTERVAL = 10_000; // 10 seconds
+  let analytics_HEARTBEAT_INTERVAL = 10_000; // 10 seconds
+  let analytics_hidden_at = null;
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      analytics_hidden_at = Date.now();
+    }
+
+    if (document.visibilityState === "visible" && analytics_hidden_at) {
+      const hiddenDuration = Date.now() - analytics_hidden_at;
+
+      if (hiddenDuration > analytics_SESSION_RESET_AFTER) {
+        // Reset session
+        analytics_session_started_at = new Date().toISOString();
+      }
+
+      analytics_hidden_at = null;
+    }
+  });
+  
+  /* ------------------------------
+     PAGE VISIBILITY HANDLING
+     ------------------------------ */
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      analytics_hidden_at = Date.now();
+    } else {
+      if (analytics_hidden_at && (Date.now() - analytics_hidden_at) > analytics_SESSION_RESET_AFTER) {
+        // Reset session if user was away longer than threshold
+        analytics_session_started_at = new Date().toISOString();
+        analytics_hidden_at = null;
+        // Optionally reset heartbeat interval here if needed
+      }
+    }
+  });
 
   /* ------------------------------
      VISITOR ID (cached per browser)
