@@ -1,4 +1,3 @@
-
 (function () {
 
   /* ------------------------------
@@ -90,7 +89,7 @@
     const analytics_payload = {
       visitor_id: analytics_visitor_id,
       city: analytics_city,
-      current_url: analytics_getCurrentUrl(),
+      url: analytics_getCurrentUrl(),
       session_started_at: analytics_session_started_at
     };
 
@@ -114,14 +113,14 @@
     const analytics_payload = {
       visitor_id: analytics_visitor_id,
       city: analytics_city,
-      current_url: analytics_getCurrentUrl(),
+      url: analytics_getCurrentUrl(),
       session_started_at: analytics_session_started_at
     };
 
     navigator.sendBeacon(
-      API_ENDPOINT,
-      JSON.stringify(analytics_payload)
-    );
+    new Blob([JSON.stringify(analytics_payload)], {
+      type: "application/json"
+    })
   });
 
 })();
